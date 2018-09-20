@@ -1,0 +1,66 @@
+@include: docker|/_clone/
+@include: string|/_clone/
+
+_env:
+    - IMAGE: archlinux/base
+      # This variable needs to be set
+    - CONTAINER:
+      DOCKERIMAGE: ${IMAGE}
+    - DOCKERCONTAINER: ${CONTAINER}
+    - DOCKERCMD:
+    - USER2: user
+    - PORT: ${PORT:-8181}
+    - RUN: USAGE
+run:
+    _env:
+        - DOCKERFLAGS: -d
+        - RUN: RUN -- "${IMAGE}" "${CONTAINER}" --
+restart:
+    _info:
+        title: Restart the container
+        desc: |
+            Restarting the container can sometimes resolve network connectivity issues.
+            All data is preserved when restarting the container.
+    _env:
+        - RUN: RESTART "${CONTAINER}"
+kill:
+    _env:
+        - RUN: KILL "${CONTAINER}" --
+install:
+    _env:
+        - DOCKERFLAGS: -ti
+        - SPACE_WRAP: DOCKER_WRAP_EXEC
+        - RUN: INSTALL "${CONTAINER}" --
+enter:
+    _env:
+        - DOCKERFLAGS: -ti
+        - SPACE_WRAP: DOCKER_WRAP_EXEC
+        - SPACE_SUDO: ":user"
+        - RUN: bash
+    root:
+        _env:
+            - DOCKERFLAGS: -ti
+            - SPACE_SUDO: !unset
+yarn:
+    _env:
+        - DOCKERFLAGS: -ti
+        - SPACE_WRAP: DOCKER_WRAP_EXEC
+        - SPACE_SUDO: ":user"
+        - RUN: YARN
+watch:
+    _env:
+        - DOCKERFLAGS: -ti
+        - SPACE_WRAP: DOCKER_WRAP_EXEC
+        - SPACE_SUDO: ":user"
+        - RUN: MAKE
+dist:
+    _env:
+        - DOCKERFLAGS: -ti
+        - SPACE_WRAP: DOCKER_WRAP_EXEC
+        - SPACE_SUDO: ":user"
+        - ORIGIN:
+            value: ${ORIGIN:-"https://lab.superblocks.com"}
+            values:
+                - https://lab.superblocks.com
+                - https://lab-beta.superblocks.com
+        - RUN: MAKE -- dist ORIGIN_DIST="${ORIGIN}"
