@@ -9,11 +9,11 @@ _env:
     - DOCKERCONTAINER: ${CONTAINER}
     - DOCKERCMD:
     - USER2: user
-    - PORT: ${PORT:-8181}
     - RUN: USAGE
 run:
     _env:
         - DOCKERFLAGS: -d
+        - PORT: ${PORT:-8181}
         - RUN: RUN -- "${IMAGE}" "${CONTAINER}" --
 restart:
     _info:
@@ -22,6 +22,7 @@ restart:
             Restarting the container can sometimes resolve network connectivity issues.
             All data is preserved when restarting the container.
     _env:
+        - PORT: ${PORT:-8181}
         - RUN: RESTART "${CONTAINER}"
 kill:
     _env:
@@ -52,7 +53,20 @@ watch:
         - DOCKERFLAGS: -ti
         - SPACE_WRAP: DOCKER_WRAP_EXEC
         - SPACE_SUDO: ":user"
-        - RUN: MAKE
+        - PORT: 
+            value: "${PORT-8181}"
+            values:
+                - 8181
+        - DOMAIN:
+            value: "${DOMAIN-localhost}"
+            values:
+                - localhost
+        - PROTOCOL:
+            values:
+                - http://
+        - ORIGIN:
+            value: "${ORIGIN-${PROTOCOL}${DOMAIN}${PORT:+:}${PORT}}"
+        - RUN: MAKE -- PORT="${PORT}" ORIGIN_DEV="${ORIGIN}"
 dist:
     _env:
         - DOCKERFLAGS: -ti
@@ -63,4 +77,4 @@ dist:
             values:
                 - https://lab.superblocks.com
                 - https://lab-beta.superblocks.com
-        - RUN: MAKE -- dist ORIGIN_DIST="${ORIGIN}"
+        - RUN: MAKE dist -- ORIGIN_DIST="${ORIGIN}"
